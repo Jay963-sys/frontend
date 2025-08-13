@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "../services/api";
 
-export default function NewCustomerForm({ onSuccess }) {
+export default function NewCustomerForm({ onSuccess, customer }) {
   const [company, setCompany] = useState("");
   const [circuitId, setCircuitId] = useState("");
   const [type, setType] = useState("");
@@ -13,6 +13,21 @@ export default function NewCustomerForm({ onSuccess }) {
   const [owner, setOwner] = useState("");
   const [error, setError] = useState("");
 
+  // Prefill form if editing
+  useEffect(() => {
+    if (customer) {
+      setCompany(customer.company || "");
+      setCircuitId(customer.circuit_id || "");
+      setType(customer.type || "");
+      setLocation(customer.location || "");
+      setIpAddress(customer.ip_address || "");
+      setPopSite(customer.pop_site || "");
+      setEmail(customer.email || "");
+      setSwitchInfo(customer.switch_info || "");
+      setOwner(customer.owner || "");
+    }
+  }, [customer]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -23,21 +38,37 @@ export default function NewCustomerForm({ onSuccess }) {
     }
 
     try {
-      await api.post("/customers", {
-        company,
-        circuit_id: circuitId,
-        type,
-        location,
-        ip_address: ipAddress,
-        pop_site: popSite,
-        email,
-        switch_info: switchInfo,
-        owner,
-      });
+      if (customer) {
+        // Update existing customer
+        await api.put(`/customers/${customer.id}`, {
+          company,
+          circuit_id: circuitId,
+          type,
+          location,
+          ip_address: ipAddress,
+          pop_site: popSite,
+          email,
+          switch_info: switchInfo,
+          owner,
+        });
+      } else {
+        // Create new customer
+        await api.post("/customers", {
+          company,
+          circuit_id: circuitId,
+          type,
+          location,
+          ip_address: ipAddress,
+          pop_site: popSite,
+          email,
+          switch_info: switchInfo,
+          owner,
+        });
+      }
       onSuccess();
     } catch (err) {
       console.error(err);
-      setError("Failed to add customer. Check required fields.");
+      setError("Failed to save customer. Check required fields.");
     }
   };
 
@@ -108,7 +139,7 @@ export default function NewCustomerForm({ onSuccess }) {
         style={inputStyle}
       />
       <button type="submit" style={buttonStyle}>
-        Add Customer
+        {customer ? "Update Customer" : "Add Customer"}
       </button>
     </form>
   );
