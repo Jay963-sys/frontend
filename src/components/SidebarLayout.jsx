@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart2,
   Wrench,
@@ -15,10 +15,12 @@ export default function SidebarLayout({ children }) {
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
   const isAdmin = user?.role === "admin";
+  const navigate = useNavigate();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    window.location.href = "/";
+    localStorage.removeItem("user");
+    navigate("/");
   };
 
   const isActive = (path) => location.pathname.startsWith(path);
