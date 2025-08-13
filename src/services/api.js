@@ -7,7 +7,7 @@ const dev =
 const api = axios.create({
   baseURL: dev
     ? "http://localhost:5000/api"
-    : `${process.env.REACT_APP_API_URL}/api`,
+    : `${process.env.REACT_APP_API_URL?.replace(/\/$/, "")}/api`,
 });
 
 api.interceptors.request.use((config) => {
