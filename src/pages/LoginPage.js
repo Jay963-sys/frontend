@@ -1,27 +1,36 @@
-import { useState } from "react";
+// LoginPage.jsx
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user) {
+      if (user.role === "admin") navigate("/dashboard");
+      else navigate("/department/dashboard");
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     try {
       const res = await api.post("/auth/login", { username, password });
+
+      // Store token and user in localStorage
       localStorage.setItem("token", res.data.token.trim());
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
+      // Redirect based on role
       const role = res.data.user?.role;
-      if (role === "admin") {
-        navigate("/dashboard");
-      } else {
-        navigate("/department/dashboard");
-      }
+      if (role === "admin") navigate("/dashboard");
+      else navigate("/department/dashboard");
     } catch (err) {
       setError(
         err.response?.data?.message || "Login failed. Please try again."
